@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;600;700;900&display=swap');
+@import "tailwindcss";
+
+@theme inline {
+  --color-mystic-bg: #0a0a12;
+  --color-mystic-dark: #1a0a2e;
+  --color-mystic-gold: #c9a84c;
+  --color-mystic-gold-light: #e0c878;
+  --color-mystic-card: rgba(30, 15, 60, 0.6);
+  --color-mystic-border: rgba(201, 168, 76, 0.3);
+  --color-mystic-text: #e0d8f0;
+  --color-mystic-muted: #8a7fa0;
+  --font-title: 'Noto Serif SC', serif;
+  --font-body: 'Noto Sans SC', sans-serif;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-glow: glow 2s ease-in-out infinite alternate;
+  --animate-twinkle: twinkle 3s ease-in-out infinite;
+  --animate-fade-in: fadeIn 0.5s ease forwards;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(201, 168, 76, 0.3); }
+  100% { box-shadow: 0 0 20px rgba(201, 168, 76, 0.6); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #0a0a12 0%, #1a0a2e 50%, #0d0d1a 100%);
+  color: #e0d8f0;
+  font-family: 'Noto Sans SC', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Glass card effect */
+.glass-card {
+  background: rgba(30, 15, 60, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: #c9a84c;
+  box-shadow: 0 0 30px rgba(201, 168, 76, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Text glow */
+.text-glow {
+  text-shadow: 0 0 20px rgba(201, 168, 76, 0.5);
+}
+
+/* Card flip animation */
+.card-flip {
+  perspective: 1000px;
+}
+
+.card-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+}
+
+.card-flip-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 12px;
+}
+
+.card-front {
+  transform: rotateY(180deg);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a12; }
+::-webkit-scrollbar-thumb { background: #c9a84c; border-radius: 3px; }
+
+.stream-line {
+  animation: fadeIn 0.3s ease forwards;
+}
