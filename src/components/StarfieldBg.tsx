@@ -3,7 +3,48 @@
 import { useEffect, useRef } from 'react';
 
 interface Star {
-  x: number; y: number; r: number; opacity: number; speed: number;
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  speed: number;
+  phase: number;
+}
+
+// Draw a 4-pointed sparkle star
+function drawSparkle(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, opacity: number) {
+  const inner = size * 0.3;
+  const outer = size;
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.globalAlpha = opacity;
+  ctx.fillStyle = '#e8cc78';
+
+  ctx.beginPath();
+  // Top point
+  ctx.moveTo(0, -outer);
+  ctx.lineTo(inner * 0.4, -inner);
+  ctx.lineTo(outer, 0);
+  ctx.lineTo(inner * 0.4, inner);
+  ctx.lineTo(0, outer);
+  ctx.lineTo(-inner * 0.4, inner);
+  ctx.lineTo(-outer, 0);
+  ctx.lineTo(-inner * 0.4, -inner);
+  ctx.closePath();
+  ctx.fill();
+
+  // Soft glow around sparkle
+  const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, outer * 1.4);
+  gradient.addColorStop(0, `rgba(232, 204, 120, ${opacity * 0.6})`);
+  gradient.addColorStop(0.5, `rgba(200, 160, 80, ${opacity * 0.15})`);
+  gradient.addColorStop(1, 'rgba(200, 160, 80, 0)');
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(0, 0, outer * 1.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
 }
 
 export default function StarfieldBg() {
@@ -17,6 +58,10 @@ export default function StarfieldBg() {
 
     let animationId: number;
     let stars: Star[] = [];
+    let prefersReduced = false;
+
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    prefersReduced = mq.matches;
 
     function resize() {
       canvas!.width = window.innerWidth;
@@ -25,26 +70,36 @@ export default function StarfieldBg() {
     }
 
     function initStars() {
-      const count = Math.floor((canvas!.width * canvas!.height) / 3000);
+      // Sparse: ~60-80 sparkles total, feels premium not busy
+      const area = canvas!.width * canvas!.height;
+      const count = Math.floor(area / 35000);
       stars = Array.from({ length: count }, () => ({
         x: Math.random() * canvas!.width,
         y: Math.random() * canvas!.height,
-        r: Math.random() * 1.5 + 0.5,
-        opacity: Math.random(),
-        speed: Math.random() * 0.3 + 0.1,
+        size: Math.random() * 4 + 2.5,
+        opacity: Math.random() * 0.5 + 0.15,
+        speed: Math.random() * 0.015 + 0.004,
+        phase: Math.random() * Math.PI * 2,
       }));
     }
 
+    let frame = 0;
     function draw() {
+      frame++;
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
+
       stars.forEach(star => {
-        ctx!.beginPath();
-        ctx!.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(201, 168, 76, ${star.opacity})`;
-        ctx!.fill();
-        star.opacity += star.speed * 0.02 * (Math.random() > 0.5 ? 1 : -1);
-        star.opacity = Math.max(0.1, Math.min(1, star.opacity));
+        if (prefersReduced) {
+          drawSparkle(ctx!, star.x, star.y, star.size, star.opacity);
+          return;
+        }
+
+        // Subtle breathing
+        const breathe = Math.sin(frame * star.speed + star.phase) * 0.3 + 0.7;
+        const op = star.opacity * breathe;
+        drawSparkle(ctx!, star.x, star.y, star.size, op);
       });
+
       animationId = requestAnimationFrame(draw);
     }
 
@@ -52,9 +107,15 @@ export default function StarfieldBg() {
     draw();
     window.addEventListener('resize', resize);
 
+    const onChange = (e: MediaQueryListEvent) => {
+      prefersReduced = e.matches;
+    };
+    mq.addEventListener('change', onChange);
+
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resize);
+      mq.removeEventListener('change', onChange);
     };
   }, []);
 

@@ -1,32 +1,24 @@
-'use client';
+interface Props { question?: string; interpretation: string; isStreaming: boolean; }
 
-interface TarotResultProps {
-  question?: string;
-  interpretation: string;
-  isStreaming: boolean;
-}
-
-export default function TarotResult({ question, interpretation, isStreaming }: TarotResultProps) {
+export default function TarotResult({ question, interpretation, isStreaming }: Props) {
   if (!interpretation && !isStreaming) return null;
 
   return (
-    <div className="glass-card p-6 md:p-8 max-w-2xl w-full mx-auto mt-8">
+    <div className="card max-w-2xl w-full mx-auto mt-12 p-8 md:p-10 animate-fade-in">
       {question && (
-        <div className="mb-4 pb-4 border-b" style={{ borderColor: 'rgba(201,168,76,0.2)' }}>
-          <span className="text-xs" style={{ color: '#8a7fa0' }}>你的问题</span>
-          <p className="mt-1 italic" style={{ color: '#e0d8f0' }}>「{question}」</p>
+        <div className="mb-6 pb-6" style={{ borderBottom: '1px solid oklch(1 0 0 / 0.06)' }}>
+          <span className="text-xs tracking-[0.08em] uppercase" style={{ color: 'oklch(0.56 0.008 310)', fontFamily: "'Noto Sans SC', system-ui, sans-serif", fontWeight: 400 }}>你的问题</span>
+          <p className="mt-3 text-lg leading-relaxed italic" style={{ color: 'oklch(0.92 0.003 320)' }}>「{question}」</p>
         </div>
       )}
 
-      <h3 className="text-lg font-semibold mb-4" style={{ color: '#c9a84c', fontFamily: "'Noto Serif SC', serif" }}>
-        ✦ AI 解读
+      <h3 className="text-lg tracking-[0.04em] mb-6" style={{ fontFamily: "'Noto Serif SC', Georgia, serif", fontWeight: 400, color: 'oklch(0.68 0.13 85)' }}>
+        解读
       </h3>
 
-      <div className="leading-relaxed whitespace-pre-wrap" style={{ color: '#e0d8f0' }}>
+      <div className="text-[15px] leading-[1.9] whitespace-pre-wrap" style={{ color: 'oklch(0.92 0.003 320)', fontFamily: "'Noto Sans SC', system-ui, sans-serif", fontWeight: 300 }}>
         {interpretation}
-        {isStreaming && (
-          <span className="inline-block w-2 h-4 ml-1 animate-pulse" style={{ backgroundColor: '#c9a84c' }} />
-        )}
+        {isStreaming && <span className="stream-cursor" />}
       </div>
     </div>
   );

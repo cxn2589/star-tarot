@@ -7,6 +7,15 @@ import TarotGuide from '@/components/TarotGuide';
 import TarotResult from '@/components/TarotResult';
 import { DrawMode, RevealedCard } from '@/types';
 
+// Sparkle decoration
+function Sparkle({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className} style={style} xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5L8 0Z" fill="#c9a050" opacity="0.5" />
+    </svg>
+  );
+}
+
 export default function TarotPage() {
   const [question, setQuestion] = useState('');
   const [mode, setMode] = useState<DrawMode>('single');
@@ -31,126 +40,96 @@ export default function TarotPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: question.trim() || null, mode }),
       });
-
-      if (!res.ok) throw new Error('API error');
-      if (!res.body) throw new Error('No response body');
+      if (!res.ok || !res.body) throw new Error('API error');
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = '';
-      let metaParsed = false;
+      let buffer = '', metaParsed = false;
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
         buffer = lines.pop() || '';
-
         for (const line of lines) {
           if (!line.startsWith('data:')) continue;
           const data = line.slice(5).trim();
-          if (data === '[DONE]') {
-            setIsStreaming(false);
-            continue;
-          }
-
-          if (!metaParsed) {
-            const meta = JSON.parse(data);
-            setCards(meta.cards);
-            setShowCards(true);
-            metaParsed = true;
-          } else {
-            setInterpretation(prev => prev + data);
-            setIsStreaming(true);
-          }
+          if (data === '[DONE]') { setIsStreaming(false); continue; }
+          if (!metaParsed) { setCards(JSON.parse(data).cards); setShowCards(true); metaParsed = true; }
+          else { setInterpretation(p => p + data); setIsStreaming(true); }
         }
       }
-
       setIsStreaming(false);
     } catch (err) {
-      console.error('Draw error:', err);
-      setInterpretation('抱歉，抽牌解读出了点问题，请稍后重试 🌙');
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  function handleRevealed() {
-    setRevealedCount(prev => prev + 1);
+      console.error(err);
+      setInterpretation('抱歉，解读出了点问题，请稍后重试。');
+    } finally { setIsLoading(false); }
   }
 
   const allRevealed = revealedCount >= cards.length;
   const positionLabels = mode === 'three' ? ['过去', '现在', '未来'] : ['当下'];
 
   return (
-    <main className="relative z-10 min-h-[calc(100vh-57px)] px-4 py-10">
+    <main className="relative z-10 min-h-[calc(100vh-57px)] px-6 py-12 overflow-hidden">
       <TarotGuide />
 
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-center mb-2" style={{ color: '#c9a84c', fontFamily: "'Noto Serif SC', serif" }}>
-          🔮 塔罗占卜
-        </h1>
-        <p className="text-center mb-8 text-sm" style={{ color: '#8a7fa0' }}>
-          心中默念你的疑问，让塔罗牌为你指引
-        </p>
+      {/* Decorative sparkles */}
+      <Sparkle className="absolute top-20 right-[10%] w-3 h-3 animate-sparkle" />
+      <Sparkle className="absolute bottom-40 left-[8%] w-2 h-2 animate-sparkle" style={{ animationDelay: '1.2s' }} />
 
-        {/* 问题输入 */}
-        <div id="question-area" className="max-w-md mx-auto mb-6">
-          <input
-            type="text"
-            value={question}
-            onChange={e => setQuestion(e.target.value)}
-            placeholder="写下你想问的事（可选）..."
-            className="w-full rounded-xl px-5 py-3 placeholder:text-white/25 focus:outline-none transition-colors"
-            style={{ backgroundColor: 'rgba(30,15,60,0.6)', border: '1px solid rgba(201,168,76,0.3)', color: '#e0d8f0' }}
-            maxLength={200}
-          />
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl mb-3 tracking-[0.06em]" style={{ fontFamily: "'Noto Serif SC', Georgia, serif", fontWeight: 300, color: 'oklch(0.94 0.005 320)' }}>
+            塔罗占卜
+          </h1>
+          <p className="text-sm tracking-[0.06em]" style={{ color: 'oklch(0.60 0.012 310)' }}>
+            专注内心，提出你的问题，塔罗牌将为你指引方向
+          </p>
         </div>
 
-        {/* 模式选择 */}
-        <div id="mode-area" className="mb-8">
+        <div className="max-w-md mx-auto mb-8">
+          <input type="text" value={question} onChange={e => setQuestion(e.target.value)} placeholder="请在这里输入你的问题..." className="input" maxLength={200} />
+        </div>
+
+        <div className="mb-10">
           <ModeSelector mode={mode} onChange={setMode} />
         </div>
 
-        {/* 抽牌按钮 */}
-        <div id="draw-area" className="text-center mb-10">
-          <button
-            onClick={handleDraw}
-            disabled={isLoading}
-            className="px-10 py-4 font-bold text-lg rounded-full transition-all duration-300
-                       hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: '#c9a84c', color: '#0a0a12', boxShadow: '0 0 15px rgba(201,168,76,0.3)' }}
-          >
-            {isLoading ? '抽取中...' : '✨ 开始抽牌'}
+        <div className="text-center mb-14">
+          <button onClick={handleDraw} disabled={isLoading} className="btn px-14 py-4 text-base">
+            {isLoading ? '抽取中...' : '开始抽牌'}
           </button>
         </div>
 
-        {/* 牌面展示 */}
-        {showCards && cards.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-6 md:gap-10 mb-8">
+        {/* Card display area */}
+        {showCards && cards.length > 0 ? (
+          <div className="flex flex-wrap justify-center gap-8 md:gap-12 mb-12">
             {cards.map((card, i) => (
-              <CardReveal
-                key={i}
-                imageSrc={card.image}
-                name={card.name}
-                position={card.position}
-                isReversed={card.isReversed}
-                label={positionLabels[i]}
-                onRevealed={handleRevealed}
-              />
+              <CardReveal key={i} imageSrc={card.image} name={card.name} position={card.position} isReversed={card.isReversed} label={positionLabels[i]} onRevealed={() => setRevealedCount(p => p + 1)} />
+            ))}
+          </div>
+        ) : (
+          /* Placeholder card backs when not yet drawn */
+          <div className="flex justify-center gap-6 md:gap-10 mb-12 opacity-40">
+            {Array.from({ length: mode === 'three' ? 3 : 1 }).map((_, i) => (
+              <div key={i} className="w-[170px] h-[280px] md:w-[200px] md:h-[330px] rounded-[12px] flex items-center justify-center"
+                style={{ background: 'oklch(0.12 0.015 300)', border: '1px solid oklch(0.55 0.10 300 / 0.3)' }}
+              >
+                <span className="text-2xl">🔮</span>
+              </div>
             ))}
           </div>
         )}
 
-        {/* AI 解读 */}
+        {!showCards && (
+          <p className="text-center text-sm tracking-[0.06em]" style={{ color: 'oklch(0.60 0.012 310 / 0.6)' }}>
+            抽牌结果将会在这里显示
+          </p>
+        )}
+
         {allRevealed && cards.length > 0 && (
-          <TarotResult
-            question={question.trim() || undefined}
-            interpretation={interpretation}
-            isStreaming={isStreaming}
-          />
+          <TarotResult question={question.trim() || undefined} interpretation={interpretation} isStreaming={isStreaming} />
         )}
       </div>
     </main>

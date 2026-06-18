@@ -1,35 +1,20 @@
 'use client';
 import { DrawMode } from '@/types';
 
-interface ModeSelectorProps {
-  mode: DrawMode;
-  onChange: (mode: DrawMode) => void;
-}
+export default function ModeSelector({ mode, onChange }: { mode: DrawMode; onChange: (m: DrawMode) => void }) {
+  const base = { fontFamily: "'Noto Sans SC', system-ui, sans-serif", fontWeight: 400 };
+  const active = { ...base, background: 'oklch(0.68 0.13 85)', color: 'oklch(0.10 0.025 265)' };
+  const inactive = { ...base, background: 'oklch(0.15 0.015 270)', color: 'oklch(0.56 0.008 310)', border: '1px solid oklch(1 0 0 / 0.06)' };
 
-export default function ModeSelector({ mode, onChange }: ModeSelectorProps) {
   return (
     <div className="flex gap-3 justify-center">
-      <button
-        onClick={() => onChange('single')}
-        className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-          mode === 'single'
-            ? 'text-[#0a0a12] shadow-lg'
-            : 'glass-card'
-        }`}
-        style={mode === 'single' ? { backgroundColor: '#c9a84c', boxShadow: '0 0 20px rgba(201,168,76,0.2)' } : { color: '#8a7fa0' }}
-      >
-        🔮 单牌运势
+      <button onClick={() => onChange('single')} className="px-6 py-3 rounded-full text-sm tracking-[0.04em] transition-all duration-300"
+        style={mode === 'single' ? active : inactive}>
+        单牌运势
       </button>
-      <button
-        onClick={() => onChange('three')}
-        className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-          mode === 'three'
-            ? 'text-[#0a0a12] shadow-lg'
-            : 'glass-card'
-        }`}
-        style={mode === 'three' ? { backgroundColor: '#c9a84c', boxShadow: '0 0 20px rgba(201,168,76,0.2)' } : { color: '#8a7fa0' }}
-      >
-        ✨ 三牌解读
+      <button onClick={() => onChange('three')} className="px-6 py-3 rounded-full text-sm tracking-[0.04em] transition-all duration-300"
+        style={mode === 'three' ? active : inactive}>
+        三牌解读
       </button>
     </div>
   );

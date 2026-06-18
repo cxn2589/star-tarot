@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(magick \"E:/参考/767f9f8183d84ec773cfc1fe6f2849bd.png\" -resize 1x1 txt:-)"
+    ]
+  }
+}
